@@ -13,12 +13,14 @@ jobs:
     steps:
       - name: Start Local API (C#)
         run: |
-          # Start your C# local API (replace with your actual start command)
           nohup dotnet run --urls "http://localhost:5057" &
 
       - name: Wait for API to be ready
         run: sleep 5
 
-      - name: Call Local API
+      - name: Send POST request with PR payload
         run: |
-          curl http://localhost:5057/api/pr
+          echo '${{ toJson(github.event.pull_request) }}' > pr_payload.json
+          curl -X POST http://localhost:5057/api/pr \
+            -H "Content-Type: application/json" \
+            -d @pr_payload.json
