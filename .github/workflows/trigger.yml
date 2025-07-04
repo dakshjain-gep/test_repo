@@ -1,19 +1,35 @@
-name: Call Local API
+name: Call Local API on PR Merge
 
 on:
   pull_request:
     branches:
       - main
-    types: [closed]
+    types:
+      - closed
 
 jobs:
   call-api:
     if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
     runs-on: ubuntu-latest
+
     steps:
-      - name: Start Local API (C#)
+      - name: Checkout merged code
+        uses: actions/checkout@v3
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'  # Update based on your project
+
+      - name: Restore dependencies
+        run: dotnet restore ./PRProject/PRProject.csproj
+
+      - name: Build API
+        run: dotnet build --configuration Release ./PRProject/PRProject.csproj
+
+      - name: Start Local API
         run: |
-          nohup dotnet run --urls "http://localhost:5057" &
+          nohup dotnet run --project ./PRProject/PRProject.csproj --urls "http://localhost:5057" &
 
       - name: Wait for API to be ready
         run: sleep 5
