@@ -1,0 +1,19 @@
+name: Trigger AI Agent on PR Merge
+
+on:
+  pull_request:
+    types:
+      - closed
+
+jobs:
+  trigger-ai-agent:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send payload to Custom API
+        env:
+          PR_PAYLOAD: ${{ toJson(github.event.pull_request) }}
+        run: |
+          curl -X POST http://localhost:5057/api/pr \
+            -H "Content-Type: application/json" \
+            -d "${PR_PAYLOAD}"
