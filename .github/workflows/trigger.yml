@@ -1,18 +1,24 @@
-name: Trigger AI Agent on PR Merge
+name: Call Local API
 
 on:
   pull_request:
-    types:
-      - closed
+    branches:
+      - main
+    types: [closed]
 
 jobs:
-  trigger-ai-agent:
-    if: github.event.pull_request.merged == true
-    runs-on: self-hosted 
+  call-api:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
     steps:
-      - name: Send payload to Custom API
+      - name: Start Local API (C#)
         run: |
-          echo '${{ toJson(github.event.pull_request) }}' > pr_payload.json
-          curl -X POST http://localhost:5057/api/pr \
-            -H "Content-Type: application/json" \
-            -d @pr_payload.json
+          # Start your C# local API (replace with your actual start command)
+          nohup dotnet run --urls "http://localhost:5057" &
+
+      - name: Wait for API to be ready
+        run: sleep 5
+
+      - name: Call Local API
+        run: |
+          curl http://localhost:5057/api/pr
